@@ -1,0 +1,25 @@
+# Build directories
+build/
+dist/
+
+# Node
+node_modules/
+package-lock.json
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+.web-ext-artifacts/

@@ -1,0 +1,19 @@
+{
+  "name": "goodlinks-ng",
+  "version": "1.0.0",
+  "description": "Browser extension to send web pages to the Goodlinks app",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
+  "keywords": [
+    "goodlinks",
+    "browser-extension",
+    "read-later",
+    "sammcleod",
+    "sammcj",
+    "smcleod",
+    "bookmarks"
+  ],
+  "author": "Sam McLeod",
+  "license": "Apache-2.0"
+}

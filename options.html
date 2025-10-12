@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Goodlinks-NG Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Goodlinks-NG Settings</h1>
+      <p class="subtitle">Configure default tags for saved links</p>
+    </header>
+
+    <main>
+      <form id="optionsForm">
+        <div class="form-group">
+          <label for="tags">Default Tags</label>
+          <input
+            type="text"
+            id="tags"
+            name="tags"
+            placeholder="e.g. work personal important"
+            autocomplete="off"
+          />
+          <p class="help-text">
+            Enter space-separated tags. These will be automatically applied when saving links to Goodlinks.
+            Leave empty to save without tags.
+          </p>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" id="clearBtn" class="btn btn-secondary">Clear</button>
+        </div>
+
+        <div id="status" class="status" role="alert" aria-live="polite"></div>
+      </form>
+    </main>
+
+    <footer>
+      <p class="note">
+        Note: Goodlinks must be installed on macOS for this extension to work.
+      </p>
+    </footer>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

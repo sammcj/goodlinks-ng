@@ -1,0 +1,143 @@
+name: CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  lint-test-build:
+    name: Lint, Test & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate manifest
+        run: make validate
+
+      - name: Run tests
+        run: make test
+
+      - name: Build extension
+        run: make build
+
+      - name: Package extension
+        run: make package
+
+      - name: Upload build artifacts
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-packages
+          path: dist/*.{zip,xpi}
+          retention-days: 7
+
+  release:
+    name: Create Release
+    needs: lint-test-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and package
+        run: make package
+
+      - name: Get version from manifest
+        id: get_version
+        run: |
+          VERSION=$(grep '"version"' manifest.json | head -n1 | sed 's/.*"version": "\(.*\)".*/\1/')
+          echo "version=v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "version_number=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "${{ steps.get_version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create git tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.get_version.outputs.version }}" -m "Release ${{ steps.get_version.outputs.version }}"
+          git push origin "${{ steps.get_version.outputs.version }}"
+
+      - name: Generate release notes
+        if: steps.check_tag.outputs.exists == 'false'
+        id: release_notes
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            CHANGES=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            CHANGES=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          {
+            echo "changes<<EOF"
+            echo "${CHANGES}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          name: Release ${{ steps.get_version.outputs.version }}
+          body: |
+            ## Changes
+            ${{ steps.release_notes.outputs.changes }}
+
+            ## Installation
+
+            ### Firefox
+            Download and install `goodlinks-ng-${{ steps.get_version.outputs.version_number }}-firefox.xpi`
+
+            ### Chrome/Brave/Edge
+            Download `goodlinks-ng-${{ steps.get_version.outputs.version_number }}-chrome.zip` and load as unpacked extension
+
+            ## Checksums
+            ```
+            $(cd dist && sha256sum *.{zip,xpi})
+            ```
+          files: |
+            dist/goodlinks-ng-${{ steps.get_version.outputs.version_number }}-firefox.xpi
+            dist/goodlinks-ng-${{ steps.get_version.outputs.version_number }}-chrome.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
