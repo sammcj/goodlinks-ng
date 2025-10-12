@@ -132,22 +132,27 @@ This automatically:
 
 **Manual store publishing:**
 
-Firefox:
+Option 1 - Environment variables:
 ```bash
-# Get API credentials from addons.mozilla.org/developers/addon/api/key/
+# Firefox
 export AMO_JWT_ISSUER="user:12345:67"
 export AMO_JWT_SECRET="your-secret-here"
 make sign-firefox-listed
-```
 
-Chrome:
-```bash
-# Get API credentials (see CHROME_WEB_STORE.md for setup)
+# Chrome
 export CHROME_CLIENT_ID="your-client-id"
 export CHROME_CLIENT_SECRET="your-client-secret"
 export CHROME_REFRESH_TOKEN="your-refresh-token"
 export CHROME_EXTENSION_ID="your-extension-id"
 make publish-chrome
+```
+
+Option 2 - Using `.env` file (recommended):
+```bash
+cp .env.example .env
+# Edit .env with your credentials
+make sign-firefox-listed  # Credentials loaded automatically
+make publish-chrome       # Credentials loaded automatically
 ```
 
 **Automated publishing via GitHub Actions:**

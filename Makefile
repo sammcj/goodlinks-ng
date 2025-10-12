@@ -1,5 +1,9 @@
 .PHONY: help test clean build build-firefox build-chrome firefox chrome package-firefox package-chrome sign-firefox-listed sign-firefox-unlisted sign-firefox-listed-first publish-chrome release all
 
+# Load environment variables from .env file if it exists
+-include .env
+export
+
 EXTENSION_NAME := goodlinks-ng
 VERSION := $(shell grep '"version"' manifest.json | head -n1 | sed 's/.*"version": "\(.*\)".*/\1/')
 BUILD_DIR := build
