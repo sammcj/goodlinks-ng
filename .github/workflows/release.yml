@@ -47,7 +47,7 @@ jobs:
         run: npm install -g web-ext
 
       - name: Sign Firefox extension
-        if: vars.AMO_JWT_ISSUER != '' && secrets.AMO_JWT_SECRET != ''
+        if: vars.AMO_JWT_ISSUER != ''
         env:
           AMO_JWT_ISSUER: ${{ vars.AMO_JWT_ISSUER }}
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
