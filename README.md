@@ -18,35 +18,46 @@ A lightweight browser extension for Firefox and Chromium-based browsers that sen
 
 ## Installation
 
-### From Source
+### Development/Testing Installation
 
+**For Firefox:**
 1. Clone or download this repository
-2. Build the extension:
+2. Build for Firefox:
    ```bash
-   make build
+   make build-firefox
    ```
+3. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
+4. Click "Load Temporary Add-on"
+5. Select the `manifest.json` file from the `build/` directory
 
-3. **For Firefox:**
-   - Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
-   - Click "Load Temporary Add-on"
-   - Select the `manifest.json` file from the `build/` directory
+**Note:** Unsigned extensions in Firefox are removed when the browser closes. For permanent installation, the extension needs to be signed by Mozilla or use Firefox Developer/Nightly Edition with signing disabled.
 
-4. **For Chrome/Brave:**
-   - Open Chrome and navigate to `chrome://extensions/`
-   - Enable "Developer mode" (toggle in top-right)
-   - Click "Load unpacked"
-   - Select the `build/` directory
-
-### From Package
-
-1. Build distribution packages:
+**For Chrome/Brave/Edge:**
+1. Clone or download this repository
+2. Build for Chrome:
    ```bash
-   make package
+   make build-chrome
    ```
+3. Open browser and navigate to extensions page:
+   - Chrome: `chrome://extensions/`
+   - Brave: `brave://extensions/`
+   - Edge: `edge://extensions/`
+4. Enable "Developer mode" (toggle in top-right)
+5. Click "Load unpacked"
+6. Select the `build/` directory
 
-2. Install the appropriate package:
-   - Firefox: Install the `.xpi` file from the `dist/` directory
-   - Chrome: Load the `.zip` file as an unpacked extension
+### Distribution Packages
+
+Build both browser packages:
+```bash
+make package
+```
+
+This creates:
+- `dist/goodlinks-ng-1.0.0-firefox.xpi` - Firefox package
+- `dist/goodlinks-ng-1.0.0-chrome.zip` - Chrome/Brave/Edge package
+
+**Note:** The Firefox `.xpi` requires Mozilla signing for permanent installation. For production use, submit to [Firefox Add-ons](https://addons.mozilla.org).
 
 ## Usage
 
@@ -72,16 +83,19 @@ These tags will be automatically applied to all links you save. Leave the field 
 
 ```
 goodlinks-ng/
-├── manifest.json        # Extension manifest (Manifest V3)
-├── background.js        # Service worker handling URL scheme
-├── options.html         # Settings page HTML
-├── options.css          # Settings page styles
-├── options.js           # Settings page logic
-├── icons/              # Official Goodlinks icons (multiple sizes)
-├── tests/              # Unit tests
-├── Makefile            # Build automation
-└── package.json        # Node.js configuration
+├── manifest.json         # Chrome manifest (Manifest V3 with service worker)
+├── manifest.firefox.json # Firefox manifest (Manifest V3 with background scripts)
+├── background.js         # Background script handling URL scheme
+├── options.html          # Settings page HTML
+├── options.css           # Settings page styles
+├── options.js            # Settings page logic
+├── icons/               # Official Goodlinks icons (multiple sizes)
+├── tests/               # Unit tests
+├── Makefile             # Build automation
+└── package.json         # Node.js configuration
 ```
+
+**Note:** Firefox and Chrome require different manifest configurations. Firefox uses `background.scripts` whilst Chrome uses `service_worker`. The Makefile automatically uses the correct manifest for each browser.
 
 ### Building
 
@@ -92,13 +106,19 @@ make help
 # Run tests
 make test
 
-# Build for both browsers
+# Build for Firefox (default)
 make build
 
-# Build and package for distribution
+# Or explicitly:
+make build-firefox
+
+# Build for Chrome/Chromium
+make build-chrome
+
+# Build and package for distribution (both browsers)
 make package
 
-# Run in Firefox for development
+# Run in Firefox for development (requires web-ext)
 make dev-firefox
 ```
 
@@ -135,7 +155,7 @@ When you click the extension icon:
 
 This extension is designed to comply with both Firefox Add-ons and Chrome Web Store requirements:
 
-- ✅ Manifest V3
+- ✅ Manifest V3 and V2 for Firefox
 - ✅ No remote code execution
 - ✅ No external dependencies or CDN assets
 - ✅ Clear, single purpose
@@ -144,7 +164,8 @@ This extension is designed to comply with both Firefox Add-ons and Chrome Web St
 
 ## Licence
 
-MIT
+- Copyright (c) 2025 Sam McLeod
+- Apache 2.0 License. See [LICENSE](LICENSE) for details.
 
 ## Attribution
 
@@ -163,5 +184,3 @@ Contributions are welcome. Please ensure:
 This is an unofficial community extension, not affiliated with the Goodlinks app developers.
 
 For issues with the extension, please [open an issue](../../issues).
-
-For Goodlinks app support, contact [[email protected]](mailto:[email protected]).

@@ -24,26 +24,34 @@ function buildGoodlinksUrl(url, title, tags) {
  */
 async function saveToGoodlinks(tab) {
   try {
-    // Get user's configured tags from storage
-    const result = await chrome.storage.sync.get(['tags']);
+    // Get user's configured tags and check if protocol handler has been used before
+    const result = await chrome.storage.sync.get(['tags', 'protocolHandlerGranted']);
     const tags = result.tags || '';
+    const handlerGranted = result.protocolHandlerGranted || false;
 
     // Build the Goodlinks URL scheme
     const goodlinksUrl = buildGoodlinksUrl(tab.url, tab.title, tags);
 
     // Open the URL scheme (this will trigger Goodlinks on macOS)
-    // We create a new tab briefly to trigger the custom URL scheme
-    const newTab = await chrome.tabs.create({ url: goodlinksUrl, active: false });
+    // Firefox requires the tab to be active for protocol handlers to work reliably
+    const newTab = await chrome.tabs.create({ url: goodlinksUrl, active: true });
 
-    // Close the tab after a brief delay to avoid "page can't be displayed" error
-    setTimeout(() => {
+    // Smart timeout: longer delay on first use for permission dialog, quick close on subsequent uses
+    const timeout = handlerGranted ? 500 : 20000; // 500ms if granted, 20s for first-time approval
+
+    setTimeout(async () => {
       chrome.tabs.remove(newTab.id).catch(() => {
-        // Ignore errors if tab already closed
+        // Tab already closed by user, ignore
       });
-    }, 100);
+
+      // Mark protocol handler as granted after first use
+      if (!handlerGranted) {
+        await chrome.storage.sync.set({ protocolHandlerGranted: true });
+      }
+    }, timeout);
 
   } catch (error) {
-    console.error('Failed to save to Goodlinks:', error);
+    console.error('Goodlinks-NG: Failed to save to Goodlinks:', error);
   }
 }
 

@@ -158,6 +158,19 @@ input[type="text"]:focus {
   border: 1px solid var(--success-colour);
 }
 
+.advanced-section {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-colour);
+}
+
+.advanced-section h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+  colour: var(--text-primary);
+}
+
 footer {
   margin-top: var(--spacing-lg);
   padding-top: var(--spacing-lg);
