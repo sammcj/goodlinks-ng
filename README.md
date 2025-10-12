@@ -2,11 +2,14 @@
 
 A lightweight browser extension for Firefox and Chromium-based browsers that sends web pages directly to the [Goodlinks](https://goodlinks.app) app using its URL scheme. No sign-in required.
 
+- [Firefox Add-on](https://addons.mozilla.org/en-GB/firefox/addon/goodlinks-ng/)
+- Chrome based browser addon comming soon
+
 ## Features
 
 - **One-click saving**: Click the extension icon to instantly save the current page to Goodlinks
 - **Configurable tags**: Set default tags that are automatically applied to saved links
-- **Cross-browser**: Works in Firefox, Chrome, Brave, Edge, and other Chromium-based browsers
+- **Cross-browser**: Works in Firefox, Chrome, Brave, and other Chromium-based browsers
 - **Privacy-focused**: Works entirely offline with no external connections
 - **Official branding**: Uses the official Goodlinks icon
 
@@ -14,7 +17,7 @@ A lightweight browser extension for Firefox and Chromium-based browsers that sen
 
 - macOS (Goodlinks is a macOS/iOS app)
 - [Goodlinks app](https://apps.apple.com/app/id1474335294) installed
-- Firefox or a Chromium-based browser (Chrome, Brave, Edge, etc.)
+- Firefox or a Chromium-based browser (Chrome, Brave, etc.)
 
 ## Installation
 
@@ -32,7 +35,7 @@ A lightweight browser extension for Firefox and Chromium-based browsers that sen
 
 **Note:** Unsigned extensions in Firefox are removed when the browser closes. For permanent installation, the extension needs to be signed by Mozilla or use Firefox Developer/Nightly Edition with signing disabled.
 
-**For Chrome/Brave/Edge:**
+**For Chrome/Brave:**
 1. Clone or download this repository
 2. Build for Chrome:
    ```bash
@@ -41,7 +44,6 @@ A lightweight browser extension for Firefox and Chromium-based browsers that sen
 3. Open browser and navigate to extensions page:
    - Chrome: `chrome://extensions/`
    - Brave: `brave://extensions/`
-   - Edge: `edge://extensions/`
 4. Enable "Developer mode" (toggle in top-right)
 5. Click "Load unpacked"
 6. Select the `build/` directory
@@ -55,7 +57,7 @@ make package
 
 This creates:
 - `dist/goodlinks-ng-1.0.0-firefox.xpi` - Firefox package
-- `dist/goodlinks-ng-1.0.0-chrome.zip` - Chrome/Brave/Edge package
+- `dist/goodlinks-ng-1.0.0-chrome.zip` - Chrome/Brave package
 
 **Note:** The Firefox `.xpi` requires Mozilla signing for permanent installation. For production use, submit to [Firefox Add-ons](https://addons.mozilla.org).
 
