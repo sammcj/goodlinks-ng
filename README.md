@@ -16,7 +16,6 @@ A lightweight browser extension for Firefox and Chromium-based browsers that sen
 
 ## Requirements
 
-- macOS (Goodlinks is a macOS/iOS app)
 - [Goodlinks app](https://apps.apple.com/app/id1474335294) installed
 - Firefox or a Chromium-based browser (Chrome, Brave, etc.)
 
