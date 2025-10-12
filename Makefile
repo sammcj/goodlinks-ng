@@ -1,4 +1,4 @@
-.PHONY: help test clean build build-firefox build-chrome firefox chrome package-firefox package-chrome sign-firefox-listed sign-firefox-unlisted sign-firefox-listed-first release all
+.PHONY: help test clean build build-firefox build-chrome firefox chrome package-firefox package-chrome sign-firefox-listed sign-firefox-unlisted sign-firefox-listed-first publish-chrome release all
 
 EXTENSION_NAME := goodlinks-ng
 VERSION := $(shell grep '"version"' manifest.json | head -n1 | sed 's/.*"version": "\(.*\)".*/\1/')
@@ -116,7 +116,7 @@ sign-firefox-unlisted: build-firefox ## Sign Firefox extension for self-distribu
 sign-firefox-listed-first: build-firefox ## Sign and submit Firefox extension for first-time listing (requires amo-metadata.json, AMO_JWT_ISSUER and AMO_JWT_SECRET)
 	@echo "Signing Firefox extension for first-time AMO listing..."
 	@command -v web-ext >/dev/null 2>&1 || (echo "Error: web-ext not installed. Run: npm install -g web-ext" && exit 1)
-	@test -f amo-metadata.json || (echo "Error: amo-metadata.json not found. See RELEASE.md for format." && exit 1)
+	@test -f amo-metadata.json || (echo "Error: amo-metadata.json not found. See CHROME_WEB_STORE.md for format." && exit 1)
 	@test -n "$(AMO_JWT_ISSUER)" || (echo "Error: AMO_JWT_ISSUER environment variable not set" && exit 1)
 	@test -n "$(AMO_JWT_SECRET)" || (echo "Error: AMO_JWT_SECRET environment variable not set" && exit 1)
 	@mkdir -p $(DIST_DIR)
@@ -128,6 +128,21 @@ sign-firefox-listed-first: build-firefox ## Sign and submit Firefox extension fo
 		--artifacts-dir=../../$(DIST_DIR) \
 		$(if $(APPROVAL_TIMEOUT),--approval-timeout=$(APPROVAL_TIMEOUT))
 	@echo "Firefox extension signed and submitted for first-time listing"
+
+publish-chrome: package-chrome ## Publish Chrome extension to Web Store (requires CHROME_CLIENT_ID, CHROME_CLIENT_SECRET, CHROME_REFRESH_TOKEN, CHROME_EXTENSION_ID)
+	@echo "Publishing Chrome extension to Web Store..."
+	@test -n "$(CHROME_CLIENT_ID)" || (echo "Error: CHROME_CLIENT_ID environment variable not set. See CHROME_WEB_STORE.md" && exit 1)
+	@test -n "$(CHROME_CLIENT_SECRET)" || (echo "Error: CHROME_CLIENT_SECRET environment variable not set. See CHROME_WEB_STORE.md" && exit 1)
+	@test -n "$(CHROME_REFRESH_TOKEN)" || (echo "Error: CHROME_REFRESH_TOKEN environment variable not set. See CHROME_WEB_STORE.md" && exit 1)
+	@test -n "$(CHROME_EXTENSION_ID)" || (echo "Error: CHROME_EXTENSION_ID environment variable not set. See CHROME_WEB_STORE.md" && exit 1)
+	@npx chrome-webstore-upload-cli@latest upload \
+		--source $(DIST_DIR)/$(EXTENSION_NAME)-$(VERSION)-chrome.zip \
+		--extension-id $(CHROME_EXTENSION_ID) \
+		--client-id $(CHROME_CLIENT_ID) \
+		--client-secret $(CHROME_CLIENT_SECRET) \
+		--refresh-token $(CHROME_REFRESH_TOKEN) \
+		--auto-publish
+	@echo "Chrome extension published to Web Store"
 
 release: ## Create a new release (usage: make release VERSION=1.0.1)
 	@test -n "$(VERSION)" || (echo "Error: VERSION not specified. Usage: make release VERSION=1.0.1" && exit 1)
@@ -165,4 +180,4 @@ dev-firefox: build-firefox ## Run extension in Firefox for development
 	@echo "Starting Firefox with extension..."
 	@web-ext run -s $(BUILD_DIR_FIREFOX)
 
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL := package

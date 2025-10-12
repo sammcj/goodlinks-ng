@@ -130,20 +130,31 @@ This automatically:
 - Creates and pushes git tag
 - Triggers GitHub Actions to build and publish
 
-**Manual Firefox signing:**
+**Manual store publishing:**
+
+Firefox:
 ```bash
 # Get API credentials from addons.mozilla.org/developers/addon/api/key/
 export AMO_JWT_ISSUER="user:12345:67"
 export AMO_JWT_SECRET="your-secret-here"
-
-# Sign for AMO listing
 make sign-firefox-listed
-
-# Or for self-distribution
-make sign-firefox-unlisted
 ```
 
-For automated signing via GitHub Actions, add `AMO_JWT_ISSUER` (variable) and `AMO_JWT_SECRET` (secret) to repository settings.
+Chrome:
+```bash
+# Get API credentials (see CHROME_WEB_STORE.md for setup)
+export CHROME_CLIENT_ID="your-client-id"
+export CHROME_CLIENT_SECRET="your-client-secret"
+export CHROME_REFRESH_TOKEN="your-refresh-token"
+export CHROME_EXTENSION_ID="your-extension-id"
+make publish-chrome
+```
+
+**Automated publishing via GitHub Actions:**
+- Firefox: Add `AMO_JWT_ISSUER` (variable) and `AMO_JWT_SECRET` (secret)
+- Chrome: Add `CHROME_EXTENSION_ID` (variable) and `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` (secrets)
+
+See [docs/CHROME_WEB_STORE.md](docs/CHROME_WEB_STORE.md) for detailed Chrome Web Store setup instructions.
 
 ### Technical Details
 

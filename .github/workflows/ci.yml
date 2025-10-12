@@ -95,6 +95,17 @@ jobs:
           echo "Signing Firefox extension..."
           make sign-firefox-listed || echo "::warning::Firefox signing failed - continuing with unsigned package"
 
+      - name: Publish to Chrome Web Store
+        if: vars.CHROME_EXTENSION_ID != ''
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
+        run: |
+          echo "Publishing Chrome extension..."
+          make publish-chrome || echo "::warning::Chrome Web Store publishing failed - continuing with package only"
+
       - name: Generate release notes
         id: release_notes
         run: |

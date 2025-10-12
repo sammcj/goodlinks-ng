@@ -15,5 +15,8 @@
     "bookmarks"
   ],
   "author": "Sam McLeod",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "chrome-webstore-upload-cli": "^3.3.1"
+  }
 }
