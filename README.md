@@ -12,6 +12,7 @@ A lightweight browser extension for Firefox and Chromium-based browsers that sen
 - **Cross-browser**: Works in Firefox, Chrome, Brave, and other Chromium-based browsers
 - **Privacy-focused**: Works entirely offline with no external connections
 - **Official branding**: Uses the official Goodlinks icon
+- **Free and Open Source forever**: Licensed under Apache 2.0
 
 ## Requirements
 
