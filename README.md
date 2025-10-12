@@ -79,47 +79,26 @@ These tags will be automatically applied to all links you save. Leave the field 
 
 ## Development
 
-### Project Structure
-
-```
-goodlinks-ng/
-├── manifest.json         # Chrome manifest (Manifest V3 with service worker)
-├── manifest.firefox.json # Firefox manifest (Manifest V3 with background scripts)
-├── background.js         # Background script handling URL scheme
-├── options.html          # Settings page HTML
-├── options.css           # Settings page styles
-├── options.js            # Settings page logic
-├── icons/               # Official Goodlinks icons (multiple sizes)
-├── tests/               # Unit tests
-├── Makefile             # Build automation
-└── package.json         # Node.js configuration
-```
-
 **Note:** Firefox and Chrome require different manifest configurations. Firefox uses `background.scripts` whilst Chrome uses `service_worker`. The Makefile automatically uses the correct manifest for each browser.
 
 ### Building
 
 ```bash
-# Show all available targets
-make help
+# Quick shortcuts - build and package with install instructions
+make firefox          # Build Firefox .xpi package
+make chrome           # Build Chrome .zip package
 
 # Run tests
 make test
-
-# Build for Firefox (default)
-make build
-
-# Or explicitly:
-make build-firefox
-
-# Build for Chrome/Chromium
-make build-chrome
 
 # Build and package for distribution (both browsers)
 make package
 
 # Run in Firefox for development (requires web-ext)
 make dev-firefox
+
+# Show all available targets
+make help
 ```
 
 ### Testing
@@ -135,6 +114,34 @@ Tests cover:
 - Tag handling
 - Special character handling
 - Unicode support
+
+### Releasing
+
+```bash
+make release VERSION=1.0.1
+```
+
+This automatically:
+- Updates version in both manifest files
+- Runs tests
+- Commits changes
+- Creates and pushes git tag
+- Triggers GitHub Actions to build and publish
+
+**Manual Firefox signing:**
+```bash
+# Get API credentials from addons.mozilla.org/developers/addon/api/key/
+export AMO_JWT_ISSUER="user:12345:67"
+export AMO_JWT_SECRET="your-secret-here"
+
+# Sign for AMO listing
+make sign-firefox-listed
+
+# Or for self-distribution
+make sign-firefox-unlisted
+```
+
+For automated signing via GitHub Actions, add `AMO_JWT_ISSUER` (variable) and `AMO_JWT_SECRET` (secret) to repository settings.
 
 ### Technical Details
 

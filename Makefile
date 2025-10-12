@@ -1,4 +1,4 @@
-.PHONY: help test clean build build-firefox build-chrome package-firefox package-chrome all
+.PHONY: help test clean build build-firefox build-chrome firefox chrome package-firefox package-chrome sign-firefox-listed sign-firefox-unlisted sign-firefox-listed-first release all
 
 EXTENSION_NAME := goodlinks-ng
 VERSION := $(shell grep '"version"' manifest.json | head -n1 | sed 's/.*"version": "\(.*\)".*/\1/')
@@ -47,6 +47,27 @@ build-chrome: ## Build for Chrome
 	@cp icons/icon-16.png icons/icon-32.png icons/icon-48.png icons/icon-128.png $(BUILD_DIR_CHROME)/icons/
 	@echo "Chrome build complete: $(BUILD_DIR_CHROME)/"
 
+firefox: package-firefox ## Shortcut: Build and package Firefox extension for local installation
+	@echo ""
+	@echo "Firefox extension packaged: $(DIST_DIR)/$(EXTENSION_NAME)-$(VERSION)-firefox.xpi"
+	@echo ""
+	@echo "To install:"
+	@echo "1. Open Firefox and navigate to about:addons"
+	@echo "2. Click the gear icon and select 'Install Add-on From File...'"
+	@echo "3. Select $(DIST_DIR)/$(EXTENSION_NAME)-$(VERSION)-firefox.xpi"
+	@echo ""
+	@echo "Or run 'make dev-firefox' to launch Firefox with the extension loaded for development"
+
+chrome: package-chrome ## Shortcut: Build and package Chrome extension for local installation
+	@echo ""
+	@echo "Chrome extension packaged: $(DIST_DIR)/$(EXTENSION_NAME)-$(VERSION)-chrome.zip"
+	@echo ""
+	@echo "To install:"
+	@echo "1. Extract the zip file"
+	@echo "2. Open chrome://extensions/ (or brave://extensions/ or edge://extensions/)"
+	@echo "3. Enable 'Developer mode' toggle"
+	@echo "4. Click 'Load unpacked' and select the extracted directory"
+
 build: clean build-firefox build-chrome ## Build for both Firefox and Chrome
 
 package-firefox: build-firefox ## Package extension for Firefox (.xpi)
@@ -64,6 +85,69 @@ package-chrome: build-chrome ## Package extension for Chrome (.zip)
 package: clean ## Package for both Firefox and Chrome
 	@$(MAKE) package-firefox
 	@$(MAKE) package-chrome
+
+sign-firefox-listed: build-firefox ## Sign and submit Firefox extension for listing on AMO (requires AMO_JWT_ISSUER and AMO_JWT_SECRET)
+	@echo "Signing Firefox extension for AMO listing..."
+	@command -v web-ext >/dev/null 2>&1 || (echo "Error: web-ext not installed. Run: npm install -g web-ext" && exit 1)
+	@test -n "$(AMO_JWT_ISSUER)" || (echo "Error: AMO_JWT_ISSUER environment variable not set" && exit 1)
+	@test -n "$(AMO_JWT_SECRET)" || (echo "Error: AMO_JWT_SECRET environment variable not set" && exit 1)
+	@mkdir -p $(DIST_DIR)
+	@cd $(BUILD_DIR_FIREFOX) && web-ext sign \
+		--channel=listed \
+		--api-key=$(AMO_JWT_ISSUER) \
+		--api-secret=$(AMO_JWT_SECRET) \
+		--artifacts-dir=../../$(DIST_DIR) \
+		$(if $(APPROVAL_TIMEOUT),--approval-timeout=$(APPROVAL_TIMEOUT))
+	@echo "Firefox extension signed and submitted for listing"
+
+sign-firefox-unlisted: build-firefox ## Sign Firefox extension for self-distribution (requires AMO_JWT_ISSUER and AMO_JWT_SECRET)
+	@echo "Signing Firefox extension for self-distribution..."
+	@command -v web-ext >/dev/null 2>&1 || (echo "Error: web-ext not installed. Run: npm install -g web-ext" && exit 1)
+	@test -n "$(AMO_JWT_ISSUER)" || (echo "Error: AMO_JWT_ISSUER environment variable not set" && exit 1)
+	@test -n "$(AMO_JWT_SECRET)" || (echo "Error: AMO_JWT_SECRET environment variable not set" && exit 1)
+	@mkdir -p $(DIST_DIR)
+	@cd $(BUILD_DIR_FIREFOX) && web-ext sign \
+		--channel=unlisted \
+		--api-key=$(AMO_JWT_ISSUER) \
+		--api-secret=$(AMO_JWT_SECRET) \
+		--artifacts-dir=../../$(DIST_DIR)
+	@echo "Signed Firefox extension created: $(DIST_DIR)/"
+
+sign-firefox-listed-first: build-firefox ## Sign and submit Firefox extension for first-time listing (requires amo-metadata.json, AMO_JWT_ISSUER and AMO_JWT_SECRET)
+	@echo "Signing Firefox extension for first-time AMO listing..."
+	@command -v web-ext >/dev/null 2>&1 || (echo "Error: web-ext not installed. Run: npm install -g web-ext" && exit 1)
+	@test -f amo-metadata.json || (echo "Error: amo-metadata.json not found. See RELEASE.md for format." && exit 1)
+	@test -n "$(AMO_JWT_ISSUER)" || (echo "Error: AMO_JWT_ISSUER environment variable not set" && exit 1)
+	@test -n "$(AMO_JWT_SECRET)" || (echo "Error: AMO_JWT_SECRET environment variable not set" && exit 1)
+	@mkdir -p $(DIST_DIR)
+	@cd $(BUILD_DIR_FIREFOX) && web-ext sign \
+		--channel=listed \
+		--amo-metadata=../amo-metadata.json \
+		--api-key=$(AMO_JWT_ISSUER) \
+		--api-secret=$(AMO_JWT_SECRET) \
+		--artifacts-dir=../../$(DIST_DIR) \
+		$(if $(APPROVAL_TIMEOUT),--approval-timeout=$(APPROVAL_TIMEOUT))
+	@echo "Firefox extension signed and submitted for first-time listing"
+
+release: ## Create a new release (usage: make release VERSION=1.0.1)
+	@test -n "$(VERSION)" || (echo "Error: VERSION not specified. Usage: make release VERSION=1.0.1" && exit 1)
+	@echo "Creating release v$(VERSION)..."
+	@echo "Updating manifest.json..."
+	@sed -i.bak 's/"version": "[^"]*"/"version": "$(VERSION)"/' manifest.json && rm manifest.json.bak
+	@echo "Updating manifest.firefox.json..."
+	@sed -i.bak 's/"version": "[^"]*"/"version": "$(VERSION)"/' manifest.firefox.json && rm manifest.firefox.json.bak
+	@echo "Running tests..."
+	@$(MAKE) test
+	@echo "Committing version bump..."
+	@git add manifest.json manifest.firefox.json
+	@git commit -m "chore: bump version to $(VERSION)"
+	@echo "Creating tag v$(VERSION)..."
+	@git tag -a "v$(VERSION)" -m "Release v$(VERSION)"
+	@echo "Pushing to origin..."
+	@git push origin main
+	@git push origin "v$(VERSION)"
+	@echo "✓ Release v$(VERSION) created and pushed"
+	@echo "GitHub Actions will build and publish the release automatically"
 
 all: test package ## Run tests and package for both browsers
 
