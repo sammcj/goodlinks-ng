@@ -24,32 +24,20 @@ function buildGoodlinksUrl(url, title, tags) {
  */
 async function saveToGoodlinks(tab) {
   try {
-    // Get user's configured tags and check if protocol handler has been used before
-    const result = await chrome.storage.sync.get(['tags', 'protocolHandlerGranted']);
+    // Get user's configured tags
+    const result = await chrome.storage.sync.get(['tags']);
     const tags = result.tags || '';
-    const handlerGranted = result.protocolHandlerGranted || false;
 
     // Build the Goodlinks URL scheme
     const goodlinksUrl = buildGoodlinksUrl(tab.url, tab.title, tags);
 
-    // Open the URL scheme (this will trigger Goodlinks on macOS)
-    // Firefox requires the tab to be active for protocol handlers to work reliably
-    const newTab = await chrome.tabs.create({ url: goodlinksUrl, active: true });
-
-    // Smart timeout: longer delay on first use for permission dialog, quick close on subsequent uses
-    const timeout = handlerGranted ? 500 : 20000; // 500ms if granted, 20s for first-time approval
-
-    setTimeout(async () => {
-      chrome.tabs.remove(newTab.id).catch(() => {
-        // Tab already closed by user, ignore
-      });
-
-      // Mark protocol handler as granted after first use
-      if (!handlerGranted) {
-        await chrome.storage.sync.set({ protocolHandlerGranted: true });
-      }
-    }, timeout);
-
+    // Trigger the protocol on the current tab. The browser intercepts the
+    // external-protocol navigation, shows its "Open in GoodLinks?" prompt, and
+    // leaves the page loaded - so there is no throwaway tab to close and nothing
+    // races the permission dialog. The previous approach opened a new tab and
+    // closed it on a timer, which dismissed Firefox's prompt before the user
+    // could click "Allow".
+    await chrome.tabs.update(tab.id, { url: goodlinksUrl });
   } catch (error) {
     console.error('Goodlinks-NG: Failed to save to Goodlinks:', error);
   }

@@ -6,7 +6,6 @@
 const form = document.getElementById('optionsForm');
 const tagsInput = document.getElementById('tags');
 const clearBtn = document.getElementById('clearBtn');
-const resetHandlerBtn = document.getElementById('resetHandlerBtn');
 const statusDiv = document.getElementById('status');
 
 /**
@@ -69,23 +68,9 @@ async function clearOptions() {
   }
 }
 
-/**
- * Resets the protocol handler granted flag
- */
-async function resetProtocolHandler() {
-  try {
-    await chrome.storage.sync.remove(['protocolHandlerGranted']);
-    showStatus('Protocol handler reset - you will see the permission dialog on next use', 'success');
-  } catch (error) {
-    console.error('Failed to reset protocol handler:', error);
-    showStatus('Failed to reset protocol handler', 'error');
-  }
-}
-
 // Event listeners
 form.addEventListener('submit', saveOptions);
 clearBtn.addEventListener('click', clearOptions);
-resetHandlerBtn.addEventListener('click', resetProtocolHandler);
 
 // Load saved options when page loads
 document.addEventListener('DOMContentLoaded', loadOptions);
